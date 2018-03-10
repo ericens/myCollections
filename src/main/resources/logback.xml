@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<configuration>
+
+
+	<property name="LOG_HOME" value="/Users/ericens/tmp" />
+	<property name="AppName" value="myCollections" />
+
+	<!-- 控制台输出 解决logback问题 -->
+	<appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%date %logger{60} %M [%thread] %-5level - %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<!--时间滚动输出 level为 INFO 日志 -->
+	<appender name="file—info"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<filter class="ch.qos.logback.classic.filter.LevelFilter">
+			<level>INFO</level>
+			<onMatch>ACCEPT</onMatch>
+			<onMismatch>DENY</onMismatch>
+		</filter>
+		<file>${LOG_HOME}/${AppName}-info.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<FileNamePattern>${LOG_HOME}/${AppName}-info.%d{yyyy-MM-dd}.%i.log
+			</FileNamePattern>
+			<MaxHistory>10</MaxHistory>
+			<timeBasedFileNamingAndTriggeringPolicy
+				class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<maxFileSize>512MB</maxFileSize>
+			</timeBasedFileNamingAndTriggeringPolicy>
+		</rollingPolicy>
+		<encoder>
+			<pattern>%date %logger{60} %M [%thread] %-5level [%file : %line] -%msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="file—info-asyn" class="ch.qos.logback.classic.AsyncAppender">
+		<appender-ref ref="file—info" />
+		<!-- 不丢失日志.默认的,如果队列的80%已满,则会丢弃TRACT、DEBUG、INFO级别的日志 -->
+		<discardingThreshold>0</discardingThreshold>
+		<!-- 更改默认的队列的深度,该值会影响性能.默认值为256 -->
+		<queueSize>512</queueSize>
+	</appender>
+
+	<!--时间滚动输出 level为 ERROR日志 -->
+	<appender name="file—error"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<filter class="ch.qos.logback.classic.filter.LevelFilter">
+			<level>ERROR</level>
+			<onMatch>ACCEPT</onMatch>
+			<onMismatch>DENY</onMismatch>
+		</filter>
+		<file>${LOG_HOME}/${AppName}-error.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<FileNamePattern>${LOG_HOME}/${AppName}-error.%d{yyyy-MM-dd}.%i.log
+			</FileNamePattern>
+			<MaxHistory>10</MaxHistory>
+			<timeBasedFileNamingAndTriggeringPolicy
+				class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<maxFileSize>512MB</maxFileSize>
+			</timeBasedFileNamingAndTriggeringPolicy>
+		</rollingPolicy>
+		<encoder>
+			<pattern>%date %logger{60} %M [%thread] %-5level [%file : %line] -
+				%msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<!--时间滚动输出 level为 ERROR日志 -->
+	<appender name="file-request—info"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<filter class="ch.qos.logback.classic.filter.LevelFilter">
+			<level>INFO</level>
+			<onMatch>ACCEPT</onMatch>
+			<onMismatch>DENY</onMismatch>
+		</filter>
+		<file>${LOG_HOME}/request-info.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<FileNamePattern>${LOG_HOME}/request-info.%d{yyyy-MM-dd}.%i.log
+			</FileNamePattern>
+			<MaxHistory>10</MaxHistory>
+			<timeBasedFileNamingAndTriggeringPolicy
+				class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<maxFileSize>512MB</maxFileSize>
+			</timeBasedFileNamingAndTriggeringPolicy>
+		</rollingPolicy>
+		<encoder>
+			<pattern>%date %logger{60} %M [%thread] %-5level [%file : %line] -
+				%msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<!-- 打印请求日子好 -->
+	<appender name="file-request—info-asyn" class="ch.qos.logback.classic.AsyncAppender">
+		<appender-ref ref="file-request—info" />
+		<!-- 不丢失日志.默认的,如果队列的80%已满,则会丢弃TRACT、DEBUG、INFO级别的日志 -->
+		<discardingThreshold>0</discardingThreshold>
+		<!-- 更改默认的队列的深度,该值会影响性能.默认值为256 -->
+		<queueSize>512</queueSize>
+	</appender>
+
+	<!-- ****************************callMark space log appender***************************** -->
+	<appender name="CALLMARK_APPENDER"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${LOG_HOME}/callMark.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<FileNamePattern>${LOG_HOME}/callMark-%d{yyyy-MM-dd}.log
+			</FileNamePattern>
+			<maxHistory>7</maxHistory>
+			<timeBasedFileNamingAndTriggeringPolicy
+				class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<maxFileSize>512MB</maxFileSize>
+			</timeBasedFileNamingAndTriggeringPolicy>
+		</rollingPolicy>
+		<encoder>
+			<pattern>%msg%n</pattern>
+		</encoder>
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<Pattern>%-4relative %date [%thread] %-5level %logger{35} - %msg%n
+			</Pattern>
+		</layout>
+	</appender>
+
+
+	<!-- ****************************profiler space log appender***************************** -->
+	<appender name="PROFILER_APPENDER"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${LOG_HOME}/profiler.log
+		</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<FileNamePattern>${LOG_HOME}/profiler-%d{yyyy-MM-dd}.log
+			</FileNamePattern>
+			<maxHistory>7</maxHistory>
+			<timeBasedFileNamingAndTriggeringPolicy
+				class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<maxFileSize>512MB</maxFileSize>
+			</timeBasedFileNamingAndTriggeringPolicy>
+		</rollingPolicy>
+		<encoder>
+			<pattern>%msg%n</pattern>
+		</encoder>
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<Pattern>%-4relative %date [%thread] %-5level %logger{35} - %msg%n
+			</Pattern>
+		</layout>
+	</appender>
+
+	<!--callMark logger -->
+	<logger name="profiler.callMark.log" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="CALLMARK_APPENDER" />
+	</logger>
+
+	<!--profiler logger -->
+	<logger name="com.qgo.profiler.core.LogManagerImpl" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="PROFILER_APPENDER" />
+	</logger>
+	<!--<logger name="com.app.gw.core.log" level="INFO" additivity="false">
+		<appender-ref ref="file-request—info-asyn" /> </logger> -->
+
+	<logger name="org.springframework.*">
+		<level value="INFO" />
+	</logger>
+
+	<logger name="com.alibaba.dubbo.*">
+		<level value="INFO" />
+	</logger>
+
+	<logger name="org.apache.kafka.*">
+		<level value="debug" />
+	</logger>
+
+	<logger name="org.zlx">
+		<level value="info" />
+	</logger>
+
+	<root level="INFO">
+		<appender-ref ref="stdout" />
+		<appender-ref ref="file—info-asyn" />
+		<appender-ref ref="file—error" />
+	</root>
+
+</configuration>

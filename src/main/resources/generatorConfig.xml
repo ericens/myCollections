@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE generatorConfiguration PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+        "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd" >
+<generatorConfiguration>
+	<!-- 指定数据库驱动的路径 -->
+    <classPathEntry
+    location="/Users/ericens/.m2/repository/mysql/mysql-connector-java/5.1.30/mysql-connector-java-5.1.30.jar"/>
+
+    <!-- <context>元素用于指定生成一组对象的环境 -->
+    <context id="hunter" targetRuntime="MyBatis3">
+
+        <!--去除注释  -->
+        <commentGenerator>
+            <property name="suppressAllComments" value="true" />
+        </commentGenerator>
+
+		<!--用于指定数据库连接信息，该元素必选，并且只能有一个 -->
+        <jdbcConnection driverClass="com.mysql.jdbc.Driver"
+                        connectionURL="jdbc:mysql://localhost:3306/secondkill?zeroDateTimeBehavior=convertToNull"
+                        userId="root" password="123456">
+        </jdbcConnection>
+
+		<!-- 该元素用来控制生成的Java实体类,targetPackage指定生成实体类存放的包名 -->
+        <javaModelGenerator targetPackage="org.zlx.currentTest.secondKill.model"
+                            targetProject="MAVEN">
+            <property name="enableSubPackages" value="false"/>
+            <property name="trimStrings" value="true"/>
+        </javaModelGenerator>
+
+		<!-- 该元素用来控制生成的Mapper.xml文件,targetPackage指定生成Mapper.xml存放的包名 -->
+        <sqlMapGenerator targetPackage="org.zlx.currentTest.secondKill.mapper"
+                         targetProject="MAVEN">
+        </sqlMapGenerator>
+
+		<!-- 该元素用来控制生成的Mapper接口类，targetPackage指定生产的Mapper接口存放的包名 -->
+        <javaClientGenerator type="XMLMAPPER" targetPackage="org.zlx.currentTest.secondKill.dao"
+                             targetProject="MAVEN">
+            <property name="enableSubPackages" value="false"/>
+        </javaClientGenerator>
+
+		<!-- 该元素用来配置表与Java实体类对应关系。只有配置的才会生成实体类和其他文件 -->
+        <table schema="public" tableName="sec_kill_goods" domainObjectName="SecKillGoods">
+            <generatedKey column="id" sqlStatement="JDBC" identity="true"/>
+        </table>
+
+        <table schema="public" tableName="sec_kill_order" domainObjectName="SecKillOrder">
+            <generatedKey column="id" sqlStatement="JDBC" identity="true"/>
+        </table>
+        <!-- <table schema="public" tableName="withhold_task_record" domainObjectName="WithholdTaskRecord">
+            <generatedKey column="id" sqlStatement="JDBC" identity="true"/>
+        </table> -->
+
+
+    </context>
+
+    <!--
+        mvn clean mybatis-generator:generate
+        java -jar mybatis-generator-core-1.3.2.jar -configfile generatorConfig.xml -overwrite
+    -->
+</generatorConfiguration>
