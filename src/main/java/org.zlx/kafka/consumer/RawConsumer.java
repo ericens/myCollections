@@ -18,6 +18,17 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  *
  *     //开始消费, 开启3 个partition消费线程
  *     //每个partitin消费线程里，在放到20个  record记录处理线程处理每个消息，先提交该消费线程的所有任务处理后，在进行拉取。
+ *
+ *
+ *     通过调节线程数等参数
+ *     1. corePoolSize=80, maxPoolSize=80,  processMessageTime=100ms, 本地消费速率也可以到550/s以上
+ *
+ *     2. corePoolSize=10, maxPoolSize=10,  processMessageTime=10ms,  本地消费速率也可以到700/s以上  可能是最佳的
+ *     2. corePoolSize=20, maxPoolSize=20,  processMessageTime=10ms,  本地消费速率也可以到550/s以上  context switch还是有点多
+ *     3. corePoolSize=80, maxPoolSize=80,  processMessageTime=10ms,  本地消费速率也可以到500/s以上  context switch过多
+ *
+ *
+ *
  */
 @Slf4j
 public class RawConsumer {
@@ -45,7 +56,7 @@ public class RawConsumer {
 
 
         //开始消费, 开启partition 个消费线程
-        for (int i=0;i<8;i++ ) {
+        for (int i=0;i<1;i++ ) {
             PartitionConsumer task=new PartitionConsumer();
             new Thread(task).start();
         }
@@ -56,11 +67,11 @@ public class RawConsumer {
         1时候，10的时候，20的时候。刚刚好
         40的时候，留有一点余地
         */
-        recordExecutor  = new ThreadPoolExecutor(20,
-                20,
+        recordExecutor  = new ThreadPoolExecutor(80,
+                80,
                 300L,
                 TimeUnit.SECONDS,
-                new ArrayBlockingQueue<Runnable>(40),
+                new ArrayBlockingQueue<Runnable>(160),
                 new ThreadPoolExecutor.CallerRunsPolicy());
 
 
@@ -82,13 +93,16 @@ public class RawConsumer {
 
         @Override
         public void run() {
-
+            long startTime=0;
+            long sumCount=0;
+            long sumTime=0;
             while (true) {
                 ConsumerRecords<String, String> records=null;
                 rwl.writeLock().lock();
                 try{
                     // 即使在 consumer.poll 时候，也需要进行同步  或者锁定
                     records = consumer.poll(5000);
+                    startTime=System.currentTimeMillis();
                 }finally {
                     rwl.writeLock().unlock();
                 }
@@ -98,7 +112,7 @@ public class RawConsumer {
                     //判断是否重复消费
                     ConsumerRecord consumerRecord=records.iterator().next();
                     if(partitionOffsetMap.get(consumerRecord.partition())!=null&& partitionOffsetMap.get(consumerRecord.partition())>=consumerRecord.offset()){
-                        log.debug("the same record found topic:{},partition:{},offset:{}",consumerRecord.topic(),consumerRecord.partition(),consumerRecord.offset());
+                        log.error("the same record found topic:{},partition:{},offset:{}",consumerRecord.topic(),consumerRecord.partition(),consumerRecord.offset());
                         return ;
                     }
                     partitionOffsetMap.put(consumerRecord.partition(),consumerRecord.offset());
@@ -106,10 +120,26 @@ public class RawConsumer {
 
                     log.info("poll the record->threadname:{},count:{},partition:{},offset:{}", Thread.currentThread().getName(), records.count(),consumerRecord.partition(),consumerRecord.offset());
                     dealRecords(records);
+
+                    int count=records.count();
+                    sumCount=sumCount+count;
+                    long time=(System.currentTimeMillis()-startTime);
+                    sumTime=sumTime+time;
+
+                    log.info("cost,count:{},elapse:{},tps:{},tpsAll:{}", sumCount, (double)sumTime/1000+"s",(double)count*1000/time+"/s",(double)sumCount*1000/(sumTime)+"/s");
+
+
                 }
                 else {
                     log.info("poll the record->threadname:{},count:{}", Thread.currentThread().getName(), records.count());
                 }
+
+
+
+
+
+
+
 
             }
 
@@ -159,7 +189,7 @@ public class RawConsumer {
 
         @Override
         public void run() {
-            //processMessage处理语句没有必要，放在同步段里面。否者2秒钟编程1分钟
+            //processMessage处理语句没有必要，放在同步段里面。否者2秒钟变成1分钟
             processMessage(consumerRecord);
             rwl.writeLock().lock();
             try{
@@ -174,7 +204,7 @@ public class RawConsumer {
             最大消费数记录的判断不能放在这里。因为一个partition里面是多线程的消费，线程没有先后，不是先消费的offset就一定更小。应该放在pull里面
             已经消费的大于>需要消费的
             if(partitionOffsetMap.get(consumerRecord.partition())!=null&& partitionOffsetMap.get(consumerRecord.partition())>=consumerRecord.offset()){
-                log.debug("the same record found topic:{},partition:{},offset:{}",consumerRecord.topic(),consumerRecord.partition(),consumerRecord.offset());
+                log.error("the same record found topic:{},partition:{},offset:{}",consumerRecord.topic(),consumerRecord.partition(),consumerRecord.offset());
                 return ;
             }
             partitionOffsetMap.put(consumerRecord.partition(),consumerRecord.offset());

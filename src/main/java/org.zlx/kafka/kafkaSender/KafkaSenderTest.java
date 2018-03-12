@@ -50,7 +50,7 @@ public class KafkaSenderTest  {
             service.submit(new Runnable() {
                 @Override
                 public void run() {
-                    for(int i=0;i<10000;i++){
+                    for(int i=0;i<100000;i++){
                         try {
                             MsgLimitAdvanceKafkaTest();
                         } catch (IOException e) {
