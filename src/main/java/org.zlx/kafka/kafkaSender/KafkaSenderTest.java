@@ -42,7 +42,7 @@ public class KafkaSenderTest  {
     }
 
     public void BatchTest()  {
-        int poolSize=10;
+        int poolSize=1;
         ExecutorService service= Executors.newFixedThreadPool(poolSize);
 
         for(int j=0;j<poolSize;j++){
@@ -50,7 +50,8 @@ public class KafkaSenderTest  {
             service.submit(new Runnable() {
                 @Override
                 public void run() {
-                    for(int i=0;i<100000;i++){
+                    long start=System.currentTimeMillis();
+                    for(long i=0;i<10000000;i++){
                         try {
                             MsgLimitAdvanceKafkaTest();
                         } catch (IOException e) {
@@ -58,8 +59,12 @@ public class KafkaSenderTest  {
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
+                        if(i%10000==0){
+                            log.info("thread {} complete send, elpase:{},{}/s", Thread.currentThread().getName(),i*1000/(System.currentTimeMillis()-start));
+
+                        }
                     }
-                    log.info("thread {} complete send ", Thread.currentThread().getName());
+                    log.info("thread {} complete send, elpase:{} ", Thread.currentThread().getName(),(System.currentTimeMillis()-start));
                 }
 
 
@@ -72,11 +77,11 @@ public class KafkaSenderTest  {
 
     }
 
+    TemplateReceiveMsg msg= TemplateMsgTest.getMsg();
+    String msgStr= JSON.toJSONString(msg);
 
     public void MsgLimitAdvanceKafkaTest() throws IOException, InterruptedException {
-        TemplateReceiveMsg msg= TemplateMsgTest.getMsg();
-        String msgStr= JSON.toJSONString(msg);
-        log.debug("this ..request------>{}",msgStr);
+
         producer.send(new ProducerRecord<String, String>(kafkaCommon.topic, RandomUtils.nextInt()+"",  msgStr));
 
     }
